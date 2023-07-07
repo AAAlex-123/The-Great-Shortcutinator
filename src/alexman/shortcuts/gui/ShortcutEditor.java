@@ -2,6 +2,7 @@ package alexman.shortcuts.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -14,6 +15,8 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.function.Supplier;
 
+import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
@@ -67,11 +70,15 @@ public class ShortcutEditor extends JPanel {
 
 		right = new JPanel();
 		right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
-		add = new JButton("+"); // TODO: replace with icon
+		right.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		add = new JButton("Add");
+		add.setAlignmentX(CENTER_ALIGNMENT);
 		add.addActionListener(new AddActionListener());
-		remove = new JButton("-"); // TODO: replace with icon
+		remove = new JButton("Remove");
+		remove.setAlignmentX(CENTER_ALIGNMENT);
 		remove.addActionListener(new RemoveActionListener());
 		right.add(add);
+		right.add(Box.createRigidArea(new Dimension(0, 5)));
 		right.add(remove);
 		this.add(right, BorderLayout.EAST);
 

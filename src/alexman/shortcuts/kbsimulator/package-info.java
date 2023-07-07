@@ -4,4 +4,4 @@
  *
  * @author Alex Mandelias
  */
-package alexman.shortcuts.prototype;
+package alexman.shortcuts.kbsimulator;

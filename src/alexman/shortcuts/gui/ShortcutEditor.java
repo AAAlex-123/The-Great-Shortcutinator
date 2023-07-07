@@ -22,9 +22,9 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 
+import alexman.shortcuts.shortcut.IShortcutFormatter;
 import alexman.shortcuts.shortcut.model.Shortcut;
 import alexman.shortcuts.shortcut.model.ShortcutModel;
-import alexman.shortcuts.shortcut.IShortcutFormatter;
 import requirement.requirements.StringType;
 import requirement.util.Requirements;
 
@@ -36,7 +36,7 @@ import requirement.util.Requirements;
  */
 public class ShortcutEditor extends JPanel {
 
-	private JButton load, reset, save, add, remove;
+	private JButton load, reset, saveAs, save, add, remove;
 	private JLabel loadedFile;
 	private JPanel top, main, right, bottom;
 	private final JList<Shortcut> shortcutList;
@@ -78,9 +78,12 @@ public class ShortcutEditor extends JPanel {
 		bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		reset = new JButton("Reset");
 		reset.addActionListener(new ResetActionListener());
+		saveAs = new JButton("Save As");
+		saveAs.addActionListener(new SaveAsActionListener());
 		save = new JButton("Save");
 		save.addActionListener(new SaveActionListener());
 		bottom.add(reset);
+		bottom.add(saveAs);
 		bottom.add(save);
 		this.add(bottom, BorderLayout.SOUTH);
 	}

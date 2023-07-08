@@ -1,4 +1,4 @@
-package alexman.shortcuts.gui;
+package alexman.shortcuts.app.editor;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -37,7 +37,7 @@ import requirement.util.Requirements;
  *
  * @author Alex Mandelias
  */
-public class ShortcutEditor extends JPanel {
+class EditorPanel extends JPanel {
 
 	private JButton load, reset, saveAs, save, add, remove;
 	private JLabel loadedFile;
@@ -49,7 +49,7 @@ public class ShortcutEditor extends JPanel {
 	private String lastLoadedFile;
 	private final Supplier<String> userDir = () -> System.getProperty("user.dir");
 
-	public ShortcutEditor(IShortcutFormatter sf) {
+	public EditorPanel(IShortcutFormatter sf) {
 		super(new BorderLayout());
 		this.sf = sf;
 
@@ -129,7 +129,7 @@ public class ShortcutEditor extends JPanel {
 		public void actionPerformed(ActionEvent e) {
 			try {
 				JFileChooser jfc = new JFileChooser(userDir.get());
-				int rv = jfc.showOpenDialog(ShortcutEditor.this);
+				int rv = jfc.showOpenDialog(EditorPanel.this);
 				if (rv == JFileChooser.APPROVE_OPTION) {
 					File file = jfc.getSelectedFile();
 					String abs = file.getAbsolutePath();
@@ -189,7 +189,7 @@ public class ShortcutEditor extends JPanel {
 		public void actionPerformed(ActionEvent e) {
 			try {
 				JFileChooser jfc = new JFileChooser(userDir.get());
-				int rv = jfc.showSaveDialog(ShortcutEditor.this);
+				int rv = jfc.showSaveDialog(EditorPanel.this);
 				if (rv == JFileChooser.APPROVE_OPTION) {
 					File file = jfc.getSelectedFile();
 					String abs = file.getAbsolutePath();

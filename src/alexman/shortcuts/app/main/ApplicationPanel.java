@@ -1,4 +1,4 @@
-package alexman.shortcuts.gui;
+package alexman.shortcuts.app.main;
 
 import java.awt.GridLayout;
 import java.io.FileReader;
@@ -6,9 +6,7 @@ import java.io.IOException;
 import java.io.Reader;
 
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.WindowConstants;
 
 import alexman.shortcuts.InputProcessor;
 import alexman.shortcuts.shortcut.model.IShortcutModel;
@@ -20,35 +18,26 @@ import alexman.shortcuts.shortcut.model.Shortcut;
  *
  * @author Alex Mandelias
  */
-public class ApplicationWindow extends JFrame {
+class ApplicationPanel extends JPanel {
+
+	private final JPanel shortcutPanel;
 
 	private final IShortcutModel shortcutModel;
 	private final InputProcessor inputProcessor;
 
-	private final JPanel shortcutPanel;
-
-	public ApplicationWindow(IShortcutModel shortcutModel, InputProcessor inputProcessor) {
-		super("The Great Shortcutinator");
-		this.shortcutModel = shortcutModel;
-		this.inputProcessor = inputProcessor;
-
-		JPanel main = new JPanel();
+	public ApplicationPanel(IShortcutModel sm, InputProcessor ip) {
+		this.shortcutModel = sm;
+		this.inputProcessor = ip;
 
 		JButton refresh = new JButton("Refresh");
 		refresh.addActionListener(e -> reloadShortcuts());
-		main.add(refresh);
+		add(refresh);
 
 		shortcutPanel = new JPanel();
 		shortcutPanel.setLayout(new GridLayout(-1, 1));
-		main.add(shortcutPanel);
-
-		add(main);
+		add(shortcutPanel);
 
 		reloadShortcuts();
-
-		setSize(800, 600);
-		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		setVisible(true);
 	}
 
 	private void reloadShortcuts() {
@@ -77,7 +66,7 @@ public class ApplicationWindow extends JFrame {
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
 			}
-		    inputProcessor.process(shortcut.getKeySequence());
+			inputProcessor.process(shortcut.getKeySequence());
 		});
 		panel.add(button);
 		return panel;

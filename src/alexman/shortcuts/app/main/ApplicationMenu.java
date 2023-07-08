@@ -1,4 +1,4 @@
-package alexman.shortcuts.gui;
+package alexman.shortcuts.app.main;
 
 import java.awt.event.ActionEvent;
 

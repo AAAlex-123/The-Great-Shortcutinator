@@ -30,6 +30,7 @@ import alexman.shortcuts.shortcut.IShortcutFormatter;
 import alexman.shortcuts.shortcut.model.IShortcutModel;
 import alexman.shortcuts.shortcut.model.Shortcut;
 import alexman.shortcuts.shortcut.model.ShortcutModel;
+import alexman.undo.UndoableHistory;
 import requirement.requirements.StringType;
 import requirement.util.Requirements;
 
@@ -41,15 +42,16 @@ import requirement.util.Requirements;
  */
 class EditorPanel extends JPanel {
 
-	private JButton load, reset, saveAs, save, add, remove;
+	private JButton load, undo, redo, reset, saveAs, save, add, remove;
 	private JLabel loadedFile;
-	private JPanel top, main, right, bottom;
+	private JPanel top, main, right, bottom, bottomLeft, bottomRight;
 	private final JList<Shortcut> shortcutList;
 
-	private final IShortcutModel sm;
+	final IShortcutModel sm;
 	private final Optional<IShortcutFormatter> sf;
 	private String lastLoadedFile;
 	private final Supplier<String> userDir = () -> System.getProperty("user.dir");
+	private final UndoableHistory<EditorCommand> history = new UndoableHistory<>();
 
 	public EditorPanel(String file, IShortcutFormatter sf)
 	        throws FileNotFoundException, IOException {
@@ -100,25 +102,39 @@ class EditorPanel extends JPanel {
 		right.add(remove);
 		this.add(right, BorderLayout.EAST);
 
-		bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		bottom = new JPanel(new BorderLayout());
+
+		bottomLeft = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		undo = new JButton("Undo");
+		undo.addActionListener(new UndoActionListener());
+		redo = new JButton("Redo");
+		redo.addActionListener(new RedoActionListener());
 		reset = new JButton("Reset");
 		reset.addActionListener(new ResetActionListener());
+		bottomLeft.add(undo);
+		bottomLeft.add(redo);
+		bottomLeft.add(reset);
+
+		bottomRight = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		saveAs = new JButton("Save As");
 		saveAs.addActionListener(new SaveAsActionListener());
 		save = new JButton("Save");
 		save.addActionListener(new SaveActionListener());
-		bottom.add(reset);
-		bottom.add(saveAs);
-		bottom.add(save);
+		bottomRight.add(saveAs);
+		bottomRight.add(save);
+
+		bottom.add(bottomLeft, BorderLayout.WEST);
+		bottom.add(bottomRight, BorderLayout.EAST);
 		this.add(bottom, BorderLayout.SOUTH);
 	}
 
 	private void loadFile(String filename) throws IOException {
 		try (Reader reader = new FileReader(filename)) {
 			sm.load(reader);
-			lastLoadedFile = filename;
-			loadedFile.setText(filename);
 		}
+		lastLoadedFile = filename;
+		loadedFile.setText(filename);
+		history.clear();
 	}
 
 	private void saveFile() throws IOException {
@@ -177,7 +193,9 @@ class EditorPanel extends JPanel {
 			reqs.fulfillWithDialog(null, "Add a new Shortcut");
 
 			Shortcut s = new Shortcut((String) reqs.getValue("Name"), (String) reqs.getValue("Shortcut"));
-			sm.addShortcut(s);
+			EditorCommand command = new AddShortcut(EditorPanel.this, s);
+			command.execute();
+			history.add(command);
 		}
 	}
 
@@ -186,8 +204,24 @@ class EditorPanel extends JPanel {
 		public void actionPerformed(ActionEvent e) {
 			Shortcut selected = shortcutList.getSelectedValue();
 			if (selected != null) {
-				sm.removeShortcut(selected);
+				EditorCommand command = new RemoveShortcut(EditorPanel.this, selected);
+				command.execute();
+				history.add(command);
 			}
+		}
+	}
+
+	private class UndoActionListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			history.undo();
+		}
+	}
+
+	private class RedoActionListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			history.redo();
 		}
 	}
 
@@ -196,6 +230,7 @@ class EditorPanel extends JPanel {
 		public void actionPerformed(ActionEvent e) {
 			try {
 				loadFile(lastLoadedFile);
+				history.clear();
 			} catch (IOException e1) {
 				e1.printStackTrace();
 				// TODO Auto-generated catch block

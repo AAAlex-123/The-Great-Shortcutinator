@@ -62,7 +62,8 @@ public class ShortcutModel implements IShortcutModel, ListModel<Shortcut>, Itera
 	}
 
 	@Override
-	public void load(Reader reader, IShortcutFormatter shortcutFormatter) throws IOException {
+	public IShortcutModel load(Reader reader, IShortcutFormatter shortcutFormatter)
+	        throws IOException {
 		Objects.requireNonNull(reader, "reader cannot be null");
 		Objects.requireNonNull(shortcutFormatter, "Shortcut Formatter cannot be null");
 
@@ -78,10 +79,13 @@ public class ShortcutModel implements IShortcutModel, ListModel<Shortcut>, Itera
 
 		ListDataEvent lde = new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 0, getSize());
 		listDataListeners.forEach(ldl -> ldl.contentsChanged(lde));
+
+		return this;
 	}
 
 	@Override
-	public void store(Writer writer, IShortcutFormatter shortcutFormatter) throws IOException {
+	public IShortcutModel store(Writer writer, IShortcutFormatter shortcutFormatter)
+	        throws IOException {
 		Objects.requireNonNull(writer, "writer cannot be null");
 		Objects.requireNonNull(shortcutFormatter, "Shortcut Formatter cannot be null");
 
@@ -89,6 +93,8 @@ public class ShortcutModel implements IShortcutModel, ListModel<Shortcut>, Itera
 			writer.write(shortcutFormatter.format(s).toCharArray());
 			writer.write(System.lineSeparator().toCharArray());
 		}
+
+		return this;
 	}
 
 	@Override
@@ -97,12 +103,13 @@ public class ShortcutModel implements IShortcutModel, ListModel<Shortcut>, Itera
 	}
 
 	@Override
-	public final void setFormatter(IShortcutFormatter sf) {
+	public final IShortcutModel setFormatter(IShortcutFormatter sf) {
 		this.sf = sf;
+		return this;
 	}
 
 	@Override
-	public void addShortcut(Shortcut shortcut) {
+	public IShortcutModel addShortcut(Shortcut shortcut) {
 		Objects.requireNonNull(shortcut, "shortcut cannot be null");
 
 		shortcuts.add(shortcut);
@@ -110,19 +117,25 @@ public class ShortcutModel implements IShortcutModel, ListModel<Shortcut>, Itera
 		int index = shortcuts.size() - 1;
 		ListDataEvent lde = new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, index, index + 1);
 		listDataListeners.forEach(ldl -> ldl.intervalAdded(lde));
+
+		return this;
 	}
 
 	@Override
-	public boolean removeShortcut(Shortcut shortcut) {
+	public IShortcutModel removeShortcut(Shortcut shortcut) {
 		Objects.requireNonNull(shortcut, "shortcut cannot be null");
 
 		int index = shortcuts.indexOf(shortcut);
-		boolean rv = shortcuts.remove(shortcut);
-		if (rv) {
-			ListDataEvent lde = new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, index, index + 1);
-			listDataListeners.forEach(ldl -> ldl.intervalRemoved(lde));
+		boolean shortcutExists = shortcuts.remove(shortcut);
+		if (!shortcutExists) {
+			throw new IllegalArgumentException(String.format("Shortcut %s not found in model"));
 		}
-		return rv;
+
+		ListDataEvent lde = new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, index,
+		        index + 1);
+		listDataListeners.forEach(ldl -> ldl.intervalRemoved(lde));
+
+		return this;
 	}
 
 	@Override

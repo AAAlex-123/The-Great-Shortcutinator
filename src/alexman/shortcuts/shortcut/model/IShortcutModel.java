@@ -23,14 +23,16 @@ public interface IShortcutModel {
 	 *
 	 * @param reader the reader. It remains open after this method returns
 	 *
+	 * @return this model
+	 *
 	 * @throws IOException if an IO Exception occurs while reading from the reader
 	 * @throws NullPointerException if the provided Formatter is {@code null}
 	 */
-	default void load(Reader reader) throws IOException {
+	default IShortcutModel load(Reader reader) throws IOException {
 		IShortcutFormatter sf = Objects.requireNonNull(getFormatter(),
 		        "No ShortcutFormatter found, use setFormatter() before calling this method");
 
-		load(reader, sf);
+		return load(reader, sf);
 	}
 
 	/**
@@ -39,14 +41,16 @@ public interface IShortcutModel {
 	 *
 	 * @param writer the writer. It remains open after this method returns
 	 *
+	 * @return this model
+	 *
 	 * @throws IOException if an IO Exception occurs while writing to the writer
 	 * @throws NullPointerException if the provided Formatter is {@code null}
 	 */
-	default void store(Writer writer) throws IOException {
+	default IShortcutModel store(Writer writer) throws IOException {
 		IShortcutFormatter sf = Objects.requireNonNull(getFormatter(),
 		        "No ShortcutFormatter found, use setFormatter() before calling this method");
 
-		store(writer, sf);
+		return store(writer, sf);
 	}
 
 	/**
@@ -56,10 +60,12 @@ public interface IShortcutModel {
 	 * @param reader the reader. It remains open after this method returns
 	 * @param sf the Formatter used to parse the data of the reader
 	 *
+	 * @return this model
+	 *
 	 * @throws IOException if an IO Exception occurs while reading from the reader
 	 * @throws NullPointerException if the provided Formatter is {@code null}
 	 */
-	void load(Reader reader, IShortcutFormatter sf) throws IOException;
+	IShortcutModel load(Reader reader, IShortcutFormatter sf) throws IOException;
 
 	/**
 	 * Writes the Shortcuts of this model to the given writer using the given
@@ -68,10 +74,12 @@ public interface IShortcutModel {
 	 * @param writer the writer. It remains open after this method returns
 	 * @param sf the Formatter used to format the data before writing them
 	 *
+	 * @return this model
+	 *
 	 * @throws IOException if an IO Exception occurs while writing to the writer
 	 * @throws NullPointerException if the current Formatter is {@code null}
 	 */
-	void store(Writer writer, IShortcutFormatter sf) throws IOException;
+	IShortcutModel store(Writer writer, IShortcutFormatter sf) throws IOException;
 
 	/**
 	 * Returns this model's current Formatter which is used when calling the
@@ -88,29 +96,33 @@ public interface IShortcutModel {
 	 * @param sf the new Formatter to set. Passing {@code null} to this method will
 	 *        cause both the aforementioned methods to throw a
 	 *        {@code NullPointerException}
+	 *
+	 * @return this model
 	 */
-	void setFormatter(IShortcutFormatter sf);
+	IShortcutModel setFormatter(IShortcutFormatter sf);
 
 	/**
 	 * Adds a new Shortcut to this model.
 	 *
 	 * @param shortcut the Shortcut to add
 	 *
+	 * @return this model
+	 *
 	 * @throws NullPointerException if {@code shortcut == null}
 	 */
-	void addShortcut(Shortcut shortcut);
+	IShortcutModel addShortcut(Shortcut shortcut);
 
 	/**
 	 * Removes an existing Shortcut from this model.
 	 *
 	 * @param shortcut the Shortcut to remove
 	 *
-	 * @return {@code true} if the Shortcut was actually removed, {@code false}
-	 *         otherwise, if it didn't exist in this model
+	 * @return this model
 	 *
 	 * @throws NullPointerException if {@code shortcut == null}
+	 *         IllegalArgumentException if the Shortcut doesn't exist in this model
 	 */
-	boolean removeShortcut(Shortcut shortcut);
+	IShortcutModel removeShortcut(Shortcut shortcut);
 
 	/**
 	 * Returns an unmodifiable List with this model's Shortcuts.

@@ -1,5 +1,0 @@
-new tab = CONTROL+T
-close tab = CONTROL+W
-refresh = CONTROL+R
-fdfds = CONTROL+A BACK_SPACE
-aaa = A

@@ -1,2 +1,0 @@
-refresh = CONTROL+R
-help = control+alt+delete

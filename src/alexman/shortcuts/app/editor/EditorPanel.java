@@ -51,16 +51,31 @@ class EditorPanel extends JPanel {
 	private String lastLoadedFile;
 	private final Supplier<String> userDir = () -> System.getProperty("user.dir");
 
-	public EditorPanel(IShortcutFormatter sf, ShortcutModel sm) {
+	public EditorPanel(String file, IShortcutFormatter sf)
+	        throws FileNotFoundException, IOException {
+		this(new ShortcutModel(sf), null, false);
+
+		loadFile(file);
+	}
+
+	public EditorPanel(ShortcutModel sm) {
+		this(sm, null, true);
+	}
+
+	private EditorPanel(ShortcutModel sm, IShortcutFormatter sf, boolean loadEnabled) {
 		super(new BorderLayout());
 		this.sm = sm;
 		this.sf = Optional.ofNullable(sf);
 
 		top = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		load = new JButton("Load");
-		load.addActionListener(new LoadActionListener());
+		if (loadEnabled) {
+			load = new JButton("Load");
+			load.addActionListener(new LoadActionListener());
+		}
 		loadedFile = new JLabel("--- Click 'Load' to load a File ---");
-		top.add(load);
+		if (loadEnabled) {
+			top.add(load);
+		}
 		top.add(loadedFile);
 		this.add(top, BorderLayout.NORTH);
 
@@ -102,6 +117,7 @@ class EditorPanel extends JPanel {
 		try (Reader reader = new FileReader(filename)) {
 			sm.load(reader);
 			lastLoadedFile = filename;
+			loadedFile.setText(filename);
 		}
 	}
 

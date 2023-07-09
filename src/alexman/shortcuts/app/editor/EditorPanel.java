@@ -13,6 +13,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import javax.swing.BorderFactory;
@@ -26,6 +27,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 
 import alexman.shortcuts.shortcut.IShortcutFormatter;
+import alexman.shortcuts.shortcut.model.IShortcutModel;
 import alexman.shortcuts.shortcut.model.Shortcut;
 import alexman.shortcuts.shortcut.model.ShortcutModel;
 import requirement.requirements.StringType;
@@ -44,14 +46,15 @@ class EditorPanel extends JPanel {
 	private JPanel top, main, right, bottom;
 	private final JList<Shortcut> shortcutList;
 
-	private final ShortcutModel sm = new ShortcutModel();
-	private final IShortcutFormatter sf;
+	private final IShortcutModel sm;
+	private final Optional<IShortcutFormatter> sf;
 	private String lastLoadedFile;
 	private final Supplier<String> userDir = () -> System.getProperty("user.dir");
 
-	public EditorPanel(IShortcutFormatter sf) {
+	public EditorPanel(IShortcutFormatter sf, ShortcutModel sm) {
 		super(new BorderLayout());
-		this.sf = sf;
+		this.sm = sm;
+		this.sf = Optional.ofNullable(sf);
 
 		top = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		load = new JButton("Load");
@@ -97,7 +100,7 @@ class EditorPanel extends JPanel {
 
 	private void loadFile(String filename) throws IOException {
 		try (Reader reader = new FileReader(filename)) {
-			sm.load(reader, this.sf);
+			sm.load(reader);
 			lastLoadedFile = filename;
 		}
 	}
@@ -108,7 +111,7 @@ class EditorPanel extends JPanel {
 
 	private void saveFile(String filename) throws IOException {
 		try (Writer writer = new FileWriter(filename)) {
-			sm.store(writer, this.sf);
+			sm.store(writer);
 		}
 	}
 
@@ -119,7 +122,7 @@ class EditorPanel extends JPanel {
 				boolean isSelected, boolean cellHasFocus) {
 			super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 			Shortcut selected = (Shortcut) value;
-			setText(sf.format(selected));
+			setText(sf.orElse(sm.getFormatter()).format(selected));
 			return this;
 		}
 	}

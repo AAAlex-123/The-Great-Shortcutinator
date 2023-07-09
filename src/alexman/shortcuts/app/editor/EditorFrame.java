@@ -5,13 +5,13 @@ import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
 import alexman.shortcuts.shortcut.IShortcutFormatter;
+import alexman.shortcuts.shortcut.model.ShortcutModel;
 
 class EditorFrame extends JFrame {
 
-	public EditorFrame(IShortcutFormatter sf) {
 		super("The Great Shortcutinator - Editor");
 
-		JPanel editorPanel = new EditorPanel(sf);
+ 		JPanel editorPanel = new EditorPanel(sf, sm);
 		add(editorPanel);
 
 		setSize(640, 480);

@@ -9,8 +9,6 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Optional;
-import java.util.function.Supplier;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -22,11 +20,10 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 
+import alexman.shortcuts.app.editor.EditorBackend.EditorAction;
 import alexman.shortcuts.shortcut.IShortcutFormatter;
-import alexman.shortcuts.shortcut.model.IShortcutModel;
 import alexman.shortcuts.shortcut.model.Shortcut;
 import alexman.shortcuts.shortcut.model.ShortcutModel;
-import alexman.undo.UndoableHistory;
 import requirement.requirements.StringType;
 import requirement.util.Requirements;
 
@@ -39,21 +36,17 @@ import requirement.util.Requirements;
 class EditorPanel extends JPanel {
 
 	private JButton load, undo, redo, reset, saveAs, save, add, remove;
-	JLabel loadedFile;
+	private JLabel loadedFile;
 	private JPanel top, main, right, bottom, bottomLeft, bottomRight;
 	private final JList<Shortcut> shortcutList;
 
-	final IShortcutModel sm;
-	private final Optional<IShortcutFormatter> sf;
-	String lastLoadedFile;
-	private final Supplier<String> userDir = () -> System.getProperty("user.dir");
-	final UndoableHistory<EditorCommand> history = new UndoableHistory<>();
+	private final EditorBackend backend;
 
-	public EditorPanel(String file, IShortcutFormatter sf)
+	public EditorPanel(String filename, IShortcutFormatter sf)
 	        throws FileNotFoundException, IOException {
 		this(new ShortcutModel(sf), null, false);
 
-		EditorAction.LOAD.perform(this, file);
+		EditorAction.LOAD.perform(this, filename);
 	}
 
 	public EditorPanel(ShortcutModel sm) {
@@ -62,8 +55,7 @@ class EditorPanel extends JPanel {
 
 	private EditorPanel(ShortcutModel sm, IShortcutFormatter sf, boolean loadEnabled) {
 		super(new BorderLayout());
-		this.sm = sm;
-		this.sf = Optional.ofNullable(sf);
+		backend = new EditorBackend(sm, sf, (String filename) -> loadedFile.setText(filename));
 
 		top = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		if (loadEnabled) {
@@ -131,7 +123,7 @@ class EditorPanel extends JPanel {
 				boolean isSelected, boolean cellHasFocus) {
 			super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 			Shortcut selected = (Shortcut) value;
-			setText(sf.orElse(sm.getFormatter()).format(selected));
+			setText(backend.getFormatter().format(selected));
 			return this;
 		}
 	}
@@ -140,12 +132,12 @@ class EditorPanel extends JPanel {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			try {
-				JFileChooser jfc = new JFileChooser(userDir.get());
+				JFileChooser jfc = new JFileChooser(EditorBackend.USER_DIR);
 				int rv = jfc.showOpenDialog(EditorPanel.this);
 				if (rv == JFileChooser.APPROVE_OPTION) {
 					File file = jfc.getSelectedFile();
 					String abs = file.getAbsolutePath();
-					EditorAction.LOAD.perform(EditorPanel.this, abs);
+					EditorAction.LOAD.perform(backend, abs);
 				} else {
 					// load cancelled
 				}
@@ -167,9 +159,12 @@ class EditorPanel extends JPanel {
 			reqs.add("Shortcut", StringType.ANY);
 			reqs.fulfillWithDialog(null, "Add a new Shortcut");
 
-			Shortcut s = new Shortcut((String) reqs.getValue("Name"), (String) reqs.getValue("Shortcut"));
+			// they are actually strings, but EditorAction#perform takes objects
+			Object name = reqs.getValue("Name");
+			Object shortcut = reqs.getValue("Shortcut");
+
 			try {
-				EditorAction.ADD.perform(EditorPanel.this, s);
+				EditorAction.ADD.perform(backend, name, shortcut);
 			} catch (IOException e1) {
 				// can't happen
 			}
@@ -182,7 +177,7 @@ class EditorPanel extends JPanel {
 			Shortcut selected = shortcutList.getSelectedValue();
 			if (selected != null) {
 				try {
-					EditorAction.REMOVE.perform(EditorPanel.this, selected);
+					EditorAction.REMOVE.perform(backend, selected);
 				} catch (IOException e1) {
 					// can't happen
 				}
@@ -194,7 +189,7 @@ class EditorPanel extends JPanel {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			try {
-				EditorAction.UNDO.perform(EditorPanel.this);
+				EditorAction.UNDO.perform(backend);
 			} catch (IOException e1) {
 				// can't happen
 			}
@@ -205,7 +200,7 @@ class EditorPanel extends JPanel {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			try {
-				EditorAction.REDO.perform(EditorPanel.this);
+				EditorAction.REDO.perform(backend);
 			} catch (IOException e1) {
 				// can't happen
 			}
@@ -216,7 +211,7 @@ class EditorPanel extends JPanel {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			try {
-				EditorAction.RESET.perform(EditorPanel.this);
+				EditorAction.RESET.perform(backend);
 			} catch (IOException e1) {
 				e1.printStackTrace();
 				// TODO Auto-generated catch block
@@ -228,12 +223,12 @@ class EditorPanel extends JPanel {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			try {
-				JFileChooser jfc = new JFileChooser(userDir.get());
+				JFileChooser jfc = new JFileChooser(EditorBackend.USER_DIR);
 				int rv = jfc.showSaveDialog(EditorPanel.this);
 				if (rv == JFileChooser.APPROVE_OPTION) {
 					File file = jfc.getSelectedFile();
 					String abs = file.getAbsolutePath();
-					EditorAction.SAVE_AS.perform(EditorPanel.this, abs);
+					EditorAction.SAVE_AS.perform(backend, abs);
 				} else {
 					// load cancelled
 				}
@@ -251,7 +246,7 @@ class EditorPanel extends JPanel {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			try {
-				EditorAction.SAVE.perform(EditorPanel.this);
+				EditorAction.SAVE.perform(backend);
 			} catch (IOException e1) {
 				e1.printStackTrace();
 				// TODO Auto-generated catch block

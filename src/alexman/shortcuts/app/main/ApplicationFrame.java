@@ -5,14 +5,15 @@ import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
 import alexman.shortcuts.InputProcessor;
+import alexman.shortcuts.shortcut.IShortcutFormatter;
 import alexman.shortcuts.shortcut.model.IShortcutModel;
 
 class ApplicationFrame extends JFrame {
 
-	public ApplicationFrame(IShortcutModel sm, InputProcessor ip) {
+	public ApplicationFrame(IShortcutModel sm, IShortcutFormatter sf, InputProcessor ip) {
 		super("The Great Shortcutinator");
 
-		JPanel applicationPanel = new ApplicationPanel(sm, ip);
+		JPanel applicationPanel = new ApplicationPanel(sm, sf, ip);
 		add(applicationPanel);
 
 		setSize(800, 600);

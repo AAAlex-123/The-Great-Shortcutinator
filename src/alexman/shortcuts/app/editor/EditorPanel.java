@@ -8,11 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -43,21 +39,21 @@ import requirement.util.Requirements;
 class EditorPanel extends JPanel {
 
 	private JButton load, undo, redo, reset, saveAs, save, add, remove;
-	private JLabel loadedFile;
+	JLabel loadedFile;
 	private JPanel top, main, right, bottom, bottomLeft, bottomRight;
 	private final JList<Shortcut> shortcutList;
 
 	final IShortcutModel sm;
 	private final Optional<IShortcutFormatter> sf;
-	private String lastLoadedFile;
+	String lastLoadedFile;
 	private final Supplier<String> userDir = () -> System.getProperty("user.dir");
-	private final UndoableHistory<EditorCommand> history = new UndoableHistory<>();
+	final UndoableHistory<EditorCommand> history = new UndoableHistory<>();
 
 	public EditorPanel(String file, IShortcutFormatter sf)
 	        throws FileNotFoundException, IOException {
 		this(new ShortcutModel(sf), null, false);
 
-		loadFile(file);
+		EditorAction.LOAD.perform(this, file);
 	}
 
 	public EditorPanel(ShortcutModel sm) {
@@ -128,25 +124,6 @@ class EditorPanel extends JPanel {
 		this.add(bottom, BorderLayout.SOUTH);
 	}
 
-	private void loadFile(String filename) throws IOException {
-		try (Reader reader = new FileReader(filename)) {
-			sm.load(reader);
-		}
-		lastLoadedFile = filename;
-		loadedFile.setText(filename);
-		history.clear();
-	}
-
-	private void saveFile() throws IOException {
-		saveFile(lastLoadedFile);
-	}
-
-	private void saveFile(String filename) throws IOException {
-		try (Writer writer = new FileWriter(filename)) {
-			sm.store(writer);
-		}
-	}
-
 	private class ShortcutCellRenderer extends DefaultListCellRenderer {
 
 		@Override
@@ -168,9 +145,7 @@ class EditorPanel extends JPanel {
 				if (rv == JFileChooser.APPROVE_OPTION) {
 					File file = jfc.getSelectedFile();
 					String abs = file.getAbsolutePath();
-					loadFile(abs);
-					lastLoadedFile = abs;
-					loadedFile.setText(abs);
+					EditorAction.LOAD.perform(EditorPanel.this, abs);
 				} else {
 					// load cancelled
 				}
@@ -193,9 +168,11 @@ class EditorPanel extends JPanel {
 			reqs.fulfillWithDialog(null, "Add a new Shortcut");
 
 			Shortcut s = new Shortcut((String) reqs.getValue("Name"), (String) reqs.getValue("Shortcut"));
-			EditorCommand command = new AddShortcut(EditorPanel.this, s);
-			command.execute();
-			history.add(command);
+			try {
+				EditorAction.ADD.perform(EditorPanel.this, s);
+			} catch (IOException e1) {
+				// can't happen
+			}
 		}
 	}
 
@@ -204,9 +181,11 @@ class EditorPanel extends JPanel {
 		public void actionPerformed(ActionEvent e) {
 			Shortcut selected = shortcutList.getSelectedValue();
 			if (selected != null) {
-				EditorCommand command = new RemoveShortcut(EditorPanel.this, selected);
-				command.execute();
-				history.add(command);
+				try {
+					EditorAction.REMOVE.perform(EditorPanel.this, selected);
+				} catch (IOException e1) {
+					// can't happen
+				}
 			}
 		}
 	}
@@ -214,14 +193,22 @@ class EditorPanel extends JPanel {
 	private class UndoActionListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			history.undo();
+			try {
+				EditorAction.UNDO.perform(EditorPanel.this);
+			} catch (IOException e1) {
+				// can't happen
+			}
 		}
 	}
 
 	private class RedoActionListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			history.redo();
+			try {
+				EditorAction.REDO.perform(EditorPanel.this);
+			} catch (IOException e1) {
+				// can't happen
+			}
 		}
 	}
 
@@ -229,8 +216,7 @@ class EditorPanel extends JPanel {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			try {
-				loadFile(lastLoadedFile);
-				history.clear();
+				EditorAction.RESET.perform(EditorPanel.this);
 			} catch (IOException e1) {
 				e1.printStackTrace();
 				// TODO Auto-generated catch block
@@ -247,7 +233,7 @@ class EditorPanel extends JPanel {
 				if (rv == JFileChooser.APPROVE_OPTION) {
 					File file = jfc.getSelectedFile();
 					String abs = file.getAbsolutePath();
-					saveFile(abs);
+					EditorAction.SAVE_AS.perform(EditorPanel.this, abs);
 				} else {
 					// load cancelled
 				}
@@ -265,7 +251,7 @@ class EditorPanel extends JPanel {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			try {
-				saveFile();
+				EditorAction.SAVE.perform(EditorPanel.this);
 			} catch (IOException e1) {
 				e1.printStackTrace();
 				// TODO Auto-generated catch block

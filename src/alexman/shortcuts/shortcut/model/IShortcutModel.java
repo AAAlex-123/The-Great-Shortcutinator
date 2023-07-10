@@ -130,4 +130,16 @@ public interface IShortcutModel {
 	 * @return the list
 	 */
 	List<Shortcut> getShortcuts();
+
+	/**
+	 * Removes all existing Shortcuts from this model.
+	 *
+	 * @return this model
+	 */
+	default IShortcutModel clear() {
+		for (Shortcut shortcut : getShortcuts())
+			removeShortcut(shortcut);
+
+		return this;
+	}
 }

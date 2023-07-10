@@ -8,6 +8,7 @@ import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -36,15 +37,15 @@ import requirement.util.Requirements;
  */
 class EditorPanel extends JPanel {
 
-	private JButton load, undo, redo, reset, saveAs, save, add, remove;
-	private JLabel loadedFile;
-	private JPanel top, main, right, bottom, bottomLeft, bottomRight;
+	private final JButton load, undo, redo, reset, saveAs, save, add, remove;
+	private final JLabel loadedFile;
+	private final JPanel top, main, right, bottom, bottomLeft, bottomRight;
 	private final JList<Shortcut> shortcutList;
 
 	private final EditorBackend backend;
 
 	public EditorPanel(String filename, IShortcutFormatter sf)
-	        throws FileNotFoundException, Exception {
+	        throws FileNotFoundException, IOException, Exception {
 		this(new ShortcutModel(sf), null, false);
 
 		EditorAction.LOAD.perform(this, filename);
@@ -56,17 +57,16 @@ class EditorPanel extends JPanel {
 
 	private EditorPanel(ShortcutModel sm, IShortcutFormatter sf, boolean loadEnabled) {
 		super(new BorderLayout());
-		backend = new EditorBackend(sm, sf, (String filename) -> loadedFile.setText(filename));
 
 		top = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		if (loadEnabled) {
 			load = new JButton("Load");
 			load.addActionListener(new LoadActionListener());
+			top.add(load);
+		} else {
+			load = null;
 		}
 		loadedFile = new JLabel("--- Click 'Load' to load a File ---");
-		if (loadEnabled) {
-			top.add(load);
-		}
 		top.add(loadedFile);
 		this.add(top, BorderLayout.NORTH);
 
@@ -115,6 +115,9 @@ class EditorPanel extends JPanel {
 		bottom.add(bottomLeft, BorderLayout.WEST);
 		bottom.add(bottomRight, BorderLayout.EAST);
 		this.add(bottom, BorderLayout.SOUTH);
+
+		// configure backend after ui elements have been initialized
+		backend = new EditorBackend(sm, sf, (String filename) -> loadedFile.setText(filename));
 	}
 
 	private class ShortcutCellRenderer extends DefaultListCellRenderer {

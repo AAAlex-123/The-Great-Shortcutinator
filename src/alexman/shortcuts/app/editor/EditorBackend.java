@@ -131,6 +131,8 @@ class EditorBackend {
 				try (Writer writer = new FileWriter(filename)) {
 					context.sm.store(writer);
 				}
+
+				LOAD.perform(context, filename);
 			}
 		},
 

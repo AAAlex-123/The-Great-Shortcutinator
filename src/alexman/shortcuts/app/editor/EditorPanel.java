@@ -263,13 +263,12 @@ class EditorPanel extends JPanel {
 	private class SaveActionListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			if (!backend.fileIsLoaded()) {
-				DialogBuilder.noFileLoaded(EditorPanel.this);
-				return;
-			}
-
 			try {
-				EditorAction.SAVE.perform(backend);
+				if (!backend.fileIsLoaded()) {
+					new SaveAsActionListener().actionPerformed(e);
+				} else {
+					EditorAction.SAVE.perform(backend);
+				}
 			} catch (Exception e1) {
 				DialogBuilder.error(EditorPanel.this, e1.getMessage());
 			}

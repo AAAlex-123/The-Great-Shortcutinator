@@ -52,13 +52,16 @@ public class SimpleFormatter implements IShortcutFormatter {
 		}
 
 		// skip all whitespace until key-value separator (kv-sep)
+		boolean kvSepFound = false;
 		for (kvSep = keyStart + 1; kvSep < line.length; kvSep++) {
-			if (line[kvSep] == this.kvsep)
+			if (line[kvSep] == this.kvsep) {
+				kvSepFound = true;
 				break;
+			}
 		}
 
 		// no kv-sep found, invalid line
-		if (line[kvSep] != this.kvsep) {
+		if (!kvSepFound) {
 			return null;
 		}
 

@@ -66,7 +66,7 @@ class EditorPanel extends JPanel {
 		} else {
 			load = null;
 		}
-		loadedFile = new JLabel("--- Click 'Load' to load a File ---");
+		loadedFile = new JLabel("--- Creating a new file ---");
 		top.add(loadedFile);
 		this.add(top, BorderLayout.NORTH);
 
@@ -249,11 +249,6 @@ class EditorPanel extends JPanel {
 	private class ResetActionListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			if (!backend.fileIsLoaded()) {
-				DialogBuilder.noFileLoaded(EditorPanel.this);
-				return;
-			}
-
 			try {
 				EditorAction.RESET.perform(backend);
 			} catch (Exception e1) {

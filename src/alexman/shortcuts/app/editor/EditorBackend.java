@@ -126,7 +126,13 @@ class EditorBackend {
 			public void perform(Object... args) throws IOException, Exception {
 				EditorBackend context = (EditorBackend) args[0];
 
-				LOAD.perform(context, context.lastLoadedFile);
+				if (context.fileIsLoaded()) {
+					LOAD.perform(context, context.lastLoadedFile);
+				} else {
+					context.sm.clear();
+					context.history.clear();
+					onHistoryChanged(context);
+				}
 			}
 		},
 

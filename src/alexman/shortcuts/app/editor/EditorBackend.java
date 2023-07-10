@@ -162,7 +162,8 @@ class EditorBackend {
 					context.sm.store(writer);
 				}
 
-				LOAD.perform(context, filename);
+				context.lastLoadedFile = filename;
+				context.onLoadedFileChanged.accept(filename);
 			}
 		},
 

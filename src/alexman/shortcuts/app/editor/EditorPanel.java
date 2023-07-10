@@ -150,7 +150,7 @@ class EditorPanel extends JPanel {
 				new DialogBuilder(EditorPanel.this)
 				        .error()
 				        .title("Bad file")
-				        .message("File %s\ncontains an invalid Shortcut: %s", filename,
+				        .message("File %s\ncontains an invalid Shortcut: %s.", filename,
 				                invalidKeyCodes)
 				        .show();
 			} catch (Exception e1) {
@@ -182,7 +182,7 @@ class EditorPanel extends JPanel {
 				new DialogBuilder(EditorPanel.this)
 				        .warning()
 				        .title("Invalid Shortcut")
-				        .message("Key sequence <%s> is invalid", shortcut)
+				        .message("Key sequence <%s> is invalid.", shortcut)
 				        .show();
 			} catch (Exception e1) {
 				// will never throw
@@ -193,13 +193,21 @@ class EditorPanel extends JPanel {
 	private class RemoveActionListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			Shortcut selected = shortcutList.getSelectedValue();
+			if (shortcutList.getModel().getSize() == 0) {
+				new DialogBuilder(EditorPanel.this)
+				        .information()
+				        .title("No Shortcut to delete")
+				        .message("No Shortcuts have been added yet\nClick 'Add' to add a Shortcut.")
+				        .show();
+				return;
+			}
 
+			Shortcut selected = shortcutList.getSelectedValue();
 			if (selected == null) {
 				new DialogBuilder(EditorPanel.this)
 				        .information()
 				        .title("No Shortcut selected")
-				        .message("Select a Shortcut to delete")
+				        .message("Select a Shortcut to delete.")
 				        .show();
 				return;
 			}

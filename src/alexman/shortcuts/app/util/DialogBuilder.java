@@ -19,7 +19,7 @@ public class DialogBuilder {
 		new DialogBuilder(parent)
 		        .error()
 		        .title("Unexpected Error")
-		        .message("Forward this to the developer and try again\n<%s>", message)
+		        .message("Forward this message to the developer and try again\n<%s>.", message)
 		        .show();
 	}
 

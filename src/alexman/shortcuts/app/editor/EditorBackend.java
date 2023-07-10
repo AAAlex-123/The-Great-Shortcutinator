@@ -118,13 +118,12 @@ class EditorBackend {
 				EditorBackend context = (EditorBackend) args[0];
 
 				LOAD.perform(context, context.lastLoadedFile);
-				context.history.clear();
 			}
 		},
 
 		SAVE_AS {
 			@Override
-			public void perform(Object... args) throws IOException {
+			public void perform(Object... args) throws IOException, Exception {
 				EditorBackend context = (EditorBackend) args[0];
 				String filename = (String) args[1];
 
@@ -138,14 +137,14 @@ class EditorBackend {
 
 		SAVE {
 			@Override
-			public void perform(Object... args) throws Exception {
+			public void perform(Object... args) throws IOException, Exception {
 				EditorBackend context = (EditorBackend) args[0];
 
 				SAVE_AS.perform(context, context.lastLoadedFile);
 			}
 		};
 
-		abstract void perform(Object... args) throws Exception;
+		public abstract void perform(Object... args) throws Exception;
 	}
 
 	private static abstract class EditorCommand implements Undoable {

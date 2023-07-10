@@ -4,11 +4,10 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -19,8 +18,10 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import alexman.shortcuts.app.editor.EditorBackend.EditorAction;
+import alexman.shortcuts.app.util.DialogBuilder;
 import alexman.shortcuts.shortcut.IShortcutFormatter;
 import alexman.shortcuts.shortcut.model.Shortcut;
 import alexman.shortcuts.shortcut.model.ShortcutModel;
@@ -43,7 +44,7 @@ class EditorPanel extends JPanel {
 	private final EditorBackend backend;
 
 	public EditorPanel(String filename, IShortcutFormatter sf)
-	        throws FileNotFoundException, IOException {
+	        throws FileNotFoundException, Exception {
 		this(new ShortcutModel(sf), null, false);
 
 		EditorAction.LOAD.perform(this, filename);
@@ -131,22 +132,18 @@ class EditorPanel extends JPanel {
 	private class LoadActionListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			JFileChooser jfc = new JFileChooser(EditorBackend.USER_DIR);
+			int dialogResult = jfc.showOpenDialog(EditorPanel.this);
+			if (dialogResult != JFileChooser.APPROVE_OPTION) {
+				return;
+			}
+
+			String filename = jfc.getSelectedFile().getAbsolutePath();
+
 			try {
-				JFileChooser jfc = new JFileChooser(EditorBackend.USER_DIR);
-				int rv = jfc.showOpenDialog(EditorPanel.this);
-				if (rv == JFileChooser.APPROVE_OPTION) {
-					File file = jfc.getSelectedFile();
-					String abs = file.getAbsolutePath();
-					EditorAction.LOAD.perform(backend, abs);
-				} else {
-					// load cancelled
-				}
-			} catch (FileNotFoundException e1) {
-				e1.printStackTrace();
-				// TODO Auto-generated catch block
-			} catch (IOException e1) {
-				e1.printStackTrace();
-				// TODO Auto-generated catch block
+				EditorAction.LOAD.perform(backend, filename);
+			} catch (Exception e1) {
+				DialogBuilder.error(EditorPanel.this, e1.getMessage());
 			}
 		}
 	}
@@ -155,9 +152,14 @@ class EditorPanel extends JPanel {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			Requirements reqs = new Requirements();
-			reqs.add("Name", StringType.ANY);
-			reqs.add("Shortcut", StringType.ANY);
-			reqs.fulfillWithDialog(null, "Add a new Shortcut");
+			reqs.add("Name", StringType.NON_EMPTY);
+			reqs.add("Shortcut", StringType.NON_EMPTY);
+
+			Frame frame = (Frame) SwingUtilities.getAncestorOfClass(Frame.class, EditorPanel.this);
+			reqs.fulfillWithDialog(frame, "Add a new Shortcut");
+
+			if (!reqs.fulfilled())
+				return;
 
 			// they are actually strings, but EditorAction#perform takes objects
 			Object name = reqs.getValue("Name");
@@ -165,8 +167,14 @@ class EditorPanel extends JPanel {
 
 			try {
 				EditorAction.ADD.perform(backend, name, shortcut);
-			} catch (IOException e1) {
-				// can't happen
+			} catch (IllegalArgumentException e1) {
+				new DialogBuilder(EditorPanel.this)
+				        .warning()
+				        .title("Invalid Shortcut")
+				        .message("Key sequence <%s> is invalid", shortcut)
+				        .show();
+			} catch (Exception e1) {
+				// will never throw
 			}
 		}
 	}
@@ -175,12 +183,20 @@ class EditorPanel extends JPanel {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			Shortcut selected = shortcutList.getSelectedValue();
-			if (selected != null) {
-				try {
-					EditorAction.REMOVE.perform(backend, selected);
-				} catch (IOException e1) {
-					// can't happen
-				}
+
+			if (selected == null) {
+				new DialogBuilder(EditorPanel.this)
+				        .information()
+				        .title("No Shortcut selected")
+				        .message("Select a Shortcut to delete")
+				        .show();
+				return;
+			}
+
+			try {
+				EditorAction.REMOVE.perform(backend, selected);
+			} catch (Exception e1) {
+				// will never throw
 			}
 		}
 	}
@@ -190,8 +206,8 @@ class EditorPanel extends JPanel {
 		public void actionPerformed(ActionEvent e) {
 			try {
 				EditorAction.UNDO.perform(backend);
-			} catch (IOException e1) {
-				// can't happen
+			} catch (Exception e1) {
+				// will never throw
 			}
 		}
 	}
@@ -201,8 +217,8 @@ class EditorPanel extends JPanel {
 		public void actionPerformed(ActionEvent e) {
 			try {
 				EditorAction.REDO.perform(backend);
-			} catch (IOException e1) {
-				// can't happen
+			} catch (Exception e1) {
+				// will never throw
 			}
 		}
 	}
@@ -210,11 +226,15 @@ class EditorPanel extends JPanel {
 	private class ResetActionListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			if (!backend.fileIsLoaded()) {
+				DialogBuilder.noFileLoaded(EditorPanel.this);
+				return;
+			}
+
 			try {
 				EditorAction.RESET.perform(backend);
-			} catch (IOException e1) {
-				e1.printStackTrace();
-				// TODO Auto-generated catch block
+			} catch (Exception e1) {
+				DialogBuilder.error(EditorPanel.this, e1.getMessage());
 			}
 		}
 	}
@@ -222,22 +242,17 @@ class EditorPanel extends JPanel {
 	private class SaveAsActionListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			JFileChooser jfc = new JFileChooser(EditorBackend.USER_DIR);
+			int dialogResult = jfc.showSaveDialog(EditorPanel.this);
+			if (dialogResult != JFileChooser.APPROVE_OPTION)
+				return;
+
+			String filename = jfc.getSelectedFile().getAbsolutePath();
+
 			try {
-				JFileChooser jfc = new JFileChooser(EditorBackend.USER_DIR);
-				int rv = jfc.showSaveDialog(EditorPanel.this);
-				if (rv == JFileChooser.APPROVE_OPTION) {
-					File file = jfc.getSelectedFile();
-					String abs = file.getAbsolutePath();
-					EditorAction.SAVE_AS.perform(backend, abs);
-				} else {
-					// load cancelled
-				}
-			} catch (FileNotFoundException e1) {
-				e1.printStackTrace();
-				// TODO Auto-generated catch block
-			} catch (IOException e1) {
-				e1.printStackTrace();
-				// TODO Auto-generated catch block
+				EditorAction.SAVE_AS.perform(backend, filename);
+			} catch (Exception e1) {
+				DialogBuilder.error(EditorPanel.this, e1.getMessage());
 			}
 		}
 	}
@@ -245,11 +260,15 @@ class EditorPanel extends JPanel {
 	private class SaveActionListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			if (!backend.fileIsLoaded()) {
+				DialogBuilder.noFileLoaded(EditorPanel.this);
+				return;
+			}
+
 			try {
 				EditorAction.SAVE.perform(backend);
-			} catch (IOException e1) {
-				e1.printStackTrace();
-				// TODO Auto-generated catch block
+			} catch (Exception e1) {
+				DialogBuilder.error(EditorPanel.this, e1.getMessage());
 			}
 		}
 	}

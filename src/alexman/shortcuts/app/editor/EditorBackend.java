@@ -39,6 +39,10 @@ class EditorBackend {
 		this.onLoadedFileChanged = onLoadedFileChanged;
 	}
 
+	public boolean fileIsLoaded() {
+		return lastLoadedFile != null;
+	}
+
 	public IShortcutModel getModel() {
 		return sm;
 	}
@@ -66,7 +70,7 @@ class EditorBackend {
 
 		ADD {
 			@Override
-			public void perform(Object... args) {
+			public void perform(Object... args) throws IllegalArgumentException {
 				EditorBackend context = (EditorBackend) args[0];
 				String action = (String) args[1];
 				String keySequence = (String) args[2];
@@ -110,7 +114,7 @@ class EditorBackend {
 
 		RESET {
 			@Override
-			public void perform(Object... args) throws IOException {
+			public void perform(Object... args) throws IOException, Exception {
 				EditorBackend context = (EditorBackend) args[0];
 
 				LOAD.perform(context, context.lastLoadedFile);
@@ -132,14 +136,14 @@ class EditorBackend {
 
 		SAVE {
 			@Override
-			public void perform(Object... args) throws IOException {
+			public void perform(Object... args) throws Exception {
 				EditorBackend context = (EditorBackend) args[0];
 
 				SAVE_AS.perform(context, context.lastLoadedFile);
 			}
 		};
 
-		abstract void perform(Object... args) throws IOException;
+		abstract void perform(Object... args) throws Exception;
 	}
 
 	private static abstract class EditorCommand implements Undoable {

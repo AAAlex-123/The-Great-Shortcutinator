@@ -96,8 +96,10 @@ class EditorPanel extends JPanel {
 		bottomLeft = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		undo = new JButton("Undo");
 		undo.addActionListener(new UndoActionListener());
+		undo.setEnabled(false);
 		redo = new JButton("Redo");
 		redo.addActionListener(new RedoActionListener());
+		redo.setEnabled(false);
 		reset = new JButton("Reset");
 		reset.addActionListener(new ResetActionListener());
 		bottomLeft.add(undo);
@@ -117,7 +119,9 @@ class EditorPanel extends JPanel {
 		this.add(bottom, BorderLayout.SOUTH);
 
 		// configure backend after ui elements have been initialized
-		backend = new EditorBackend(sm, sf, (String filename) -> loadedFile.setText(filename));
+		backend = new EditorBackend(sm, sf, (String filename) -> loadedFile.setText(filename),
+		        (Boolean enabled) -> undo.setEnabled(enabled),
+		        (Boolean enabled) -> redo.setEnabled(enabled));
 	}
 
 	private class ShortcutCellRenderer extends DefaultListCellRenderer {

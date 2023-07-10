@@ -31,12 +31,16 @@ class EditorBackend {
 	private final UndoableHistory<EditorCommand> history = new UndoableHistory<>();
 
 	private final Consumer<String> onLoadedFileChanged;
+	private final Consumer<Boolean> onUndoEnabledChanged, onRedoEnabledChanged;
 
 	public EditorBackend(IShortcutModel sm, IShortcutFormatter sf,
-	        Consumer<String> onLoadedFileChanged) {
+	        Consumer<String> onLoadedFileChanged, Consumer<Boolean> onUndoEnabledChanged,
+	        Consumer<Boolean> onRedoEnabledChanged) {
 		this.sm = sm;
 		this.sf = Optional.ofNullable(sf);
 		this.onLoadedFileChanged = onLoadedFileChanged;
+		this.onUndoEnabledChanged = onUndoEnabledChanged;
+		this.onRedoEnabledChanged = onRedoEnabledChanged;
 	}
 
 	public boolean fileIsLoaded() {
@@ -65,6 +69,7 @@ class EditorBackend {
 				context.lastLoadedFile = filename;
 				context.onLoadedFileChanged.accept(filename);
 				context.history.clear();
+				onHistoryChanged(context);
 			}
 		},
 
@@ -79,6 +84,7 @@ class EditorBackend {
 				EditorCommand command = new AddShortcut(context, shortcut);
 				command.execute();
 				context.history.add(command);
+				onHistoryChanged(context);
 			}
 		},
 
@@ -91,6 +97,7 @@ class EditorBackend {
 				EditorCommand command = new RemoveShortcut(context, shortcut);
 				command.execute();
 				context.history.add(command);
+				onHistoryChanged(context);
 			}
 		},
 
@@ -100,6 +107,7 @@ class EditorBackend {
 				EditorBackend context = (EditorBackend) args[0];
 
 				context.history.undo();
+				onHistoryChanged(context);
 			}
 		},
 
@@ -109,6 +117,7 @@ class EditorBackend {
 				EditorBackend context = (EditorBackend) args[0];
 
 				context.history.redo();
+				onHistoryChanged(context);
 			}
 		},
 
@@ -145,6 +154,11 @@ class EditorBackend {
 		};
 
 		public abstract void perform(Object... args) throws Exception;
+
+		private static void onHistoryChanged(EditorBackend context) {
+			context.onUndoEnabledChanged.accept(context.history.canUndo());
+			context.onRedoEnabledChanged.accept(context.history.canRedo());
+		}
 	}
 
 	private static abstract class EditorCommand implements Undoable {

@@ -101,6 +101,22 @@ class EditorBackend {
 			}
 		},
 
+		EDIT {
+			@Override
+			public void perform(Object... args) {
+				EditorBackend context = (EditorBackend) args[0];
+				Shortcut oldShortcut = (Shortcut) args[1];
+				String newShortcutAction = (String) args[2];
+				String newShortcutKeySequence = (String) args[3];
+				Shortcut newShortcut = new Shortcut(newShortcutAction, newShortcutKeySequence);
+
+				EditorCommand command = new EditShortcut(context, oldShortcut, newShortcut);
+				command.execute();
+				context.history.add(command);
+				onHistoryChanged(context);
+			}
+		},
+
 		UNDO {
 			@Override
 			public void perform(Object... args) {
@@ -213,6 +229,29 @@ class EditorBackend {
 		@Override
 		public void unexecute() {
 			context.sm.addShortcut(shortcutToRemove);
+		}
+	}
+
+	private static class EditShortcut extends EditorCommand {
+
+		private final Shortcut oldShortcut, newShortcut;
+
+		public EditShortcut(EditorBackend context, Shortcut oldShortcut, Shortcut newShortcut) {
+			super(context);
+			this.oldShortcut = oldShortcut;
+			this.newShortcut = newShortcut;
+		}
+
+		@Override
+		public void execute() {
+			context.sm.removeShortcut(oldShortcut);
+			context.sm.addShortcut(newShortcut);
+		}
+
+		@Override
+		public void unexecute() {
+			context.sm.removeShortcut(newShortcut);
+			context.sm.addShortcut(oldShortcut);
 		}
 	}
 }

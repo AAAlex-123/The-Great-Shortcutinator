@@ -37,7 +37,7 @@ import requirement.util.Requirements;
  */
 class EditorPanel extends JPanel {
 
-	private final JButton load, undo, redo, reset, saveAs, save, add, remove;
+	private final JButton load, undo, redo, reset, saveAs, save, add, remove, edit;
 	private final JLabel loadedFile;
 	private final JPanel top, main, right, bottom, bottomLeft, bottomRight;
 	private final JList<Shortcut> shortcutList;
@@ -86,9 +86,14 @@ class EditorPanel extends JPanel {
 		remove = new JButton("Remove");
 		remove.setAlignmentX(CENTER_ALIGNMENT);
 		remove.addActionListener(new RemoveActionListener());
+		edit = new JButton("Edit");
+		edit.setAlignmentX(CENTER_ALIGNMENT);
+		edit.addActionListener(new EditActionListener());
 		right.add(add);
 		right.add(Box.createRigidArea(new Dimension(0, 5)));
 		right.add(remove);
+		right.add(Box.createRigidArea(new Dimension(0, 5)));
+		right.add(edit);
 		this.add(right, BorderLayout.EAST);
 
 		bottom = new JPanel(new BorderLayout());
@@ -218,6 +223,58 @@ class EditorPanel extends JPanel {
 
 			try {
 				EditorAction.REMOVE.perform(backend, selected);
+			} catch (Exception e1) {
+				// will never throw
+			}
+		}
+	}
+
+	private class EditActionListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if (shortcutList.getModel().getSize() == 0) {
+				new DialogBuilder(EditorPanel.this)
+				        .information()
+				        .title("No Shortcut to edit")
+				        .message("No Shortcuts have been added yet\nClick 'Add' to add a Shortcut.")
+				        .show();
+				return;
+			}
+
+			Shortcut selected = shortcutList.getSelectedValue();
+			if (selected == null) {
+				new DialogBuilder(EditorPanel.this)
+				        .information()
+				        .title("No Shortcut selected")
+				        .message("Select a Shortcut to edit.")
+				        .show();
+				return;
+			}
+
+			Requirements reqs = new Requirements();
+			reqs.add("Name", StringType.NON_EMPTY);
+			reqs.add("Shortcut", StringType.NON_EMPTY);
+			reqs.offer("Name", selected.getAction());
+			reqs.offer("Shortcut", selected.getKeySequenceAsString());
+
+			Frame frame = (Frame) SwingUtilities.getAncestorOfClass(Frame.class, EditorPanel.this);
+			reqs.fulfillWithDialog(frame, "Edit a Shortcut");
+
+			if (!reqs.fulfilled())
+				return;
+
+			// they are actually strings, but EditorAction#perform takes objects
+			Object name = reqs.getValue("Name");
+			Object shortcut = reqs.getValue("Shortcut");
+
+			try {
+				EditorAction.EDIT.perform(backend, selected, name, shortcut);
+			} catch (IllegalArgumentException e1) {
+				new DialogBuilder(EditorPanel.this)
+				        .warning()
+				        .title("Invalid Shortcut")
+				        .message("Key sequence <%s> is invalid.", shortcut)
+				        .show();
 			} catch (Exception e1) {
 				// will never throw
 			}

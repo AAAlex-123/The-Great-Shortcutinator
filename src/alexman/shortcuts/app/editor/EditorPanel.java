@@ -145,6 +145,14 @@ class EditorPanel extends JPanel {
 
 			try {
 				EditorAction.LOAD.perform(backend, filename);
+			} catch (IllegalArgumentException e1) {
+				String invalidKeyCodes = e1.getMessage().split(":")[1];
+				new DialogBuilder(EditorPanel.this)
+				        .error()
+				        .title("Bad file")
+				        .message("File %s\ncontains an invalid Shortcut: %s", filename,
+				                invalidKeyCodes)
+				        .show();
 			} catch (Exception e1) {
 				DialogBuilder.error(EditorPanel.this, e1.getMessage());
 			}

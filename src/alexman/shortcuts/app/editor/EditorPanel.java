@@ -37,7 +37,7 @@ import requirement.util.Requirements;
  */
 class EditorPanel extends JPanel {
 
-	private final JButton load, undo, redo, reset, saveAs, save, add, remove, edit;
+	private final JButton load, undo, redo, reset, saveAs, save, saveAndExit, add, remove, edit;
 	private final JLabel loadedFile;
 	private final JPanel top, main, right, bottom, bottomLeft, bottomRight;
 	private final JList<Shortcut> shortcutList;
@@ -116,8 +116,11 @@ class EditorPanel extends JPanel {
 		saveAs.addActionListener(new SaveAsActionListener());
 		save = new JButton("Save");
 		save.addActionListener(new SaveActionListener());
+		saveAndExit = new JButton("Save and Exit");
+		saveAndExit.addActionListener(new SaveAndExitActionListener());
 		bottomRight.add(saveAs);
 		bottomRight.add(save);
+		bottomRight.add(saveAndExit);
 
 		bottom.add(bottomLeft, BorderLayout.WEST);
 		bottom.add(bottomRight, BorderLayout.EAST);
@@ -340,6 +343,22 @@ class EditorPanel extends JPanel {
 					new SaveAsActionListener().actionPerformed(e);
 				} else {
 					EditorAction.SAVE.perform(backend);
+				}
+			} catch (Exception e1) {
+				DialogBuilder.error(EditorPanel.this, e1.getMessage());
+			}
+		}
+	}
+
+	private class SaveAndExitActionListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			try {
+				if (!backend.fileIsLoaded()) {
+					new SaveAsActionListener().actionPerformed(e);
+				} else {
+					EditorAction.SAVE.perform(backend);
+					SwingUtilities.getWindowAncestor(EditorPanel.this).dispose();
 				}
 			} catch (Exception e1) {
 				DialogBuilder.error(EditorPanel.this, e1.getMessage());

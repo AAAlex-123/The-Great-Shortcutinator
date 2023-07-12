@@ -46,16 +46,16 @@ class EditorPanel extends JPanel {
 
 	public EditorPanel(String filename, IShortcutFormatter sf)
 	        throws FileNotFoundException, IOException, Exception {
-		this(new ShortcutModel(sf), null, false);
+		this(new ShortcutModel(sf), false);
 
 		EditorAction.LOAD.perform(this, filename);
 	}
 
 	public EditorPanel(ShortcutModel sm) {
-		this(sm, null, true);
+		this(sm, true);
 	}
 
-	private EditorPanel(ShortcutModel sm, IShortcutFormatter sf, boolean loadEnabled) {
+	private EditorPanel(ShortcutModel sm, boolean loadEnabled) {
 		super(new BorderLayout());
 
 		top = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -124,7 +124,7 @@ class EditorPanel extends JPanel {
 		this.add(bottom, BorderLayout.SOUTH);
 
 		// configure backend after ui elements have been initialized
-		backend = new EditorBackend(sm, sf, (String filename) -> loadedFile.setText(filename),
+		backend = new EditorBackend(sm, (String filename) -> loadedFile.setText(filename),
 		        (Boolean enabled) -> undo.setEnabled(enabled),
 		        (Boolean enabled) -> redo.setEnabled(enabled));
 	}

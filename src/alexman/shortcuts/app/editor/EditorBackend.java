@@ -6,7 +6,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 import alexman.shortcuts.shortcut.IShortcutFormatter;
@@ -27,17 +26,14 @@ class EditorBackend {
 
 	private final IShortcutModel sm;
 	private String lastLoadedFile;
-	private final Optional<IShortcutFormatter> sf;
 	private final UndoableHistory<EditorCommand> history = new UndoableHistory<>();
 
 	private final Consumer<String> onLoadedFileChanged;
 	private final Consumer<Boolean> onUndoEnabledChanged, onRedoEnabledChanged;
 
-	public EditorBackend(IShortcutModel sm, IShortcutFormatter sf,
-	        Consumer<String> onLoadedFileChanged, Consumer<Boolean> onUndoEnabledChanged,
-	        Consumer<Boolean> onRedoEnabledChanged) {
+	public EditorBackend(IShortcutModel sm, Consumer<String> onLoadedFileChanged,
+	        Consumer<Boolean> onUndoEnabledChanged, Consumer<Boolean> onRedoEnabledChanged) {
 		this.sm = sm;
-		this.sf = Optional.ofNullable(sf);
 		this.onLoadedFileChanged = onLoadedFileChanged;
 		this.onUndoEnabledChanged = onUndoEnabledChanged;
 		this.onRedoEnabledChanged = onRedoEnabledChanged;
@@ -52,7 +48,7 @@ class EditorBackend {
 	}
 
 	public IShortcutFormatter getFormatter() {
-		return sf.orElse(sm.getFormatter());
+		return sm.getFormatter();
 	}
 
 	public enum EditorAction {

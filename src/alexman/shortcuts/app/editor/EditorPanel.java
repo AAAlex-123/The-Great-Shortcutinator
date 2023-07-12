@@ -48,7 +48,7 @@ class EditorPanel extends JPanel {
 	        throws FileNotFoundException, IOException, Exception {
 		this(new ShortcutModel(sf), false);
 
-		EditorAction.LOAD.perform(this, filename);
+		EditorAction.LOAD.perform(backend, filename);
 	}
 
 	public EditorPanel(ShortcutModel sm) {

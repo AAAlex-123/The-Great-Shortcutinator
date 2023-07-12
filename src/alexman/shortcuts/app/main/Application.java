@@ -15,11 +15,12 @@ import alexman.shortcuts.shortcut.model.ShortcutModel;
 public class Application {
 
 	public static void main(String[] args) throws IOException {
-		IShortcutModel sm = new ShortcutModel();
 		IShortcutFormatter sf = new SimpleFormatter();
+		IShortcutModel sm = new ShortcutModel(sf);
+
 		InputProcessor ip = new InputProcessor(new RobotAdapter());
 
-		JFrame applicationWindow = new ApplicationFrame(sm, sf, ip);
+		JFrame applicationWindow = new ApplicationFrame(sm, ip);
 		applicationWindow.setVisible(true);
 	}
 }

@@ -20,7 +20,6 @@ import javax.swing.JPanel;
 
 import alexman.shortcuts.InputProcessor;
 import alexman.shortcuts.app.editor.Editor;
-import alexman.shortcuts.shortcut.IShortcutFormatter;
 import alexman.shortcuts.shortcut.model.IShortcutModel;
 import alexman.shortcuts.shortcut.model.Shortcut;
 
@@ -37,15 +36,13 @@ class ApplicationPanel extends JPanel {
 	private final JLabel loadedFile;
 
 	private final IShortcutModel sm;
-	private final IShortcutFormatter sf;
 	private final InputProcessor ip;
 	private String lastLoadedFile;
 	private final Supplier<String> userDir = () -> System.getProperty("user.dir");
 
-	public ApplicationPanel(IShortcutModel sm, IShortcutFormatter sf, InputProcessor ip) {
+	public ApplicationPanel(IShortcutModel sm, InputProcessor ip) {
 		super(new BorderLayout());
 		this.sm = sm;
-		this.sf = sf;
 		this.ip = ip;
 
 		top = new JPanel(new BorderLayout());
@@ -170,7 +167,7 @@ class ApplicationPanel extends JPanel {
 
 	private void loadFile(String filename) throws IOException {
 		try (Reader reader = new FileReader(filename)) {
-			sm.load(reader, this.sf);
+			sm.load(reader);
 			lastLoadedFile = filename;
 		}
 	}

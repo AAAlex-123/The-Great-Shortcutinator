@@ -46,9 +46,11 @@ class ApplicationPanel extends JPanel {
 
 		topRight = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		reload = new JButton("Reload");
-		reload.addActionListener(new RelaodActionListener());
 		edit = new JButton("Edit");
+		reload.addActionListener(new RelaodActionListener());
 		edit.addActionListener(new EditActionListener());
+		reload.setEnabled(false); // enable on load
+		edit.setEnabled(false); // enable on load
 		topRight.add(reload);
 		topRight.add(edit);
 
@@ -99,6 +101,10 @@ class ApplicationPanel extends JPanel {
 			try {
 				ApplicationAction.LOAD.perform(backend, abs);
 				ApplicationPanel.this.refreshPanelWithShortcuts();
+				// enable now that a file has been loaded
+				// subsequent loads have no effect on this
+				reload.setEnabled(true);
+				edit.setEnabled(true);
 			} catch (Exception e1) {
 				DialogBuilder.error(ApplicationPanel.this, e1.getMessage());
 			}

@@ -1,8 +1,5 @@
 package alexman.shortcuts.app.editor;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
 import javax.swing.JFrame;
 
 import alexman.shortcuts.shortcut.IShortcutFormatter;
@@ -11,7 +8,7 @@ import alexman.shortcuts.shortcut.model.ShortcutModel;
 
 public class Editor {
 
-	public static void main(String[] args) throws FileNotFoundException, IOException {
+	public static void main(String[] args) throws Exception {
 
 		IShortcutFormatter sf = new SimpleFormatter();
 		JFrame editorFrame;

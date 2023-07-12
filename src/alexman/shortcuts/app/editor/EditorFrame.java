@@ -1,8 +1,5 @@
 package alexman.shortcuts.app.editor;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
@@ -13,7 +10,7 @@ import alexman.shortcuts.shortcut.model.ShortcutModel;
 class EditorFrame extends JFrame {
 
 	public EditorFrame(String file, IShortcutFormatter sf)
-	        throws FileNotFoundException, IOException {
+	        throws Exception {
 		super("The Great Shortcutinator - Editor");
 		configurePanel(new EditorPanel(file, sf));
 	}

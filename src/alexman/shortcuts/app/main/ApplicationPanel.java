@@ -160,7 +160,7 @@ class ApplicationPanel extends JPanel {
 				} else {
 					Editor.main(new String[] { lastLoadedFile });
 				}
-			} catch (IOException e1) {
+			} catch (Exception e1) {
 				JOptionPane.showMessageDialog(ApplicationPanel.this,
 				        "Internal error; Please contact the developer",
 				        "Unexpected Error", JOptionPane.ERROR_MESSAGE);
